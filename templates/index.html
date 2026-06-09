@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building Finder — Tra cứu công ty theo địa chỉ</title>
+<style>
+  :root{--bg:#0e1014;--card:#171a21;--card2:#1d212a;--line:#2a2f3a;--txt:#e7eaf0;--mut:#9aa3b2;--acc:#22c55e;--acc2:#16a34a;--blue:#38bdf8;--red:#f87171;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 20px 70px}
+  h1{font-size:22px;margin:0 0 2px}
+  .sub{color:var(--mut);font-size:13.5px;margin:0 0 22px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap}
+  input[type=text]{flex:1;min-width:260px;padding:13px 15px;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:15px}
+  button{padding:13px 20px;border-radius:11px;border:0;background:var(--acc);color:#06210f;font-weight:600;font-size:15px;cursor:pointer}
+  button:hover{background:var(--acc2)}
+  button:disabled{opacity:.5;cursor:default}
+  button.sec{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+  .opts{display:flex;gap:16px;align-items:center;margin:12px 0;color:var(--mut);font-size:13px;flex-wrap:wrap}
+  .opts label{display:flex;gap:7px;align-items:center;cursor:pointer}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 0}
+  .chip{background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--mut);cursor:pointer}
+  .chip:hover{color:var(--txt);border-color:var(--acc)}
+  .status{color:var(--mut);font-size:14px;margin:18px 0 6px;min-height:20px}
+  .warn{background:#2a1d06;border:1px solid #4a3408;color:#f5d68a;padding:11px 15px;border-radius:11px;font-size:13px;margin:14px 0}
+  .err{background:#2a1010;border:1px solid #5a1d1d;color:#fca5a5;padding:11px 15px;border-radius:11px;font-size:13px;margin:14px 0}
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+  tr:hover td{background:#12151b}
+  .tax{font-family:ui-monospace,Menlo,monospace;color:var(--acc);white-space:nowrap}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .count{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 11px;font-size:12.5px;color:var(--mut);margin-left:8px}
+  .empty{padding:26px;text-align:center;color:var(--mut)}
+  .row2{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--mut);border-top-color:var(--acc);border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:7px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  footer{color:var(--mut);font-size:11.5px;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Building Finder <span style="color:var(--mut);font-weight:400;font-size:15px">· tra cứu công ty theo địa chỉ</span></h1>
+  <p class="sub">Nhập 1 địa chỉ → ra các công ty đăng ký tại đó. Reverse address → company lookup for Vietnam.</p>
+
+  {% if not keys_set %}
+  <div class="warn">⚠️ Server chưa cấu hình search backend. Đặt <code>SERPAPI_KEY</code> (hoặc <code>GOOGLE_API_KEY</code> + <code>GOOGLE_CX</code>) rồi khởi động lại (xem README).</div>
+  {% endif %}
+
+  <div class="bar">
+    <input id="addr" type="text" placeholder="vd: 308 Điện Biên Phủ, Quận 3, HCM" autofocus>
+    <button id="go">Tìm kiếm</button>
+  </div>
+  <div class="opts">
+    <label><input type="checkbox" id="verify" checked> Lọc theo địa chỉ (chính xác hơn)</label>
+  </div>
+  <div class="chips">
+    <span class="chip" data-a="308 Điện Biên Phủ, Quận 3, HCM">308 Điện Biên Phủ, Q3</span>
+    <span class="chip" data-a="72 Lê Thánh Tôn, Quận 1, HCM">72 Lê Thánh Tôn, Q1</span>
+    <span class="chip" data-a="2 Hải Triều, Quận 1, HCM">Bitexco, Q1</span>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div id="msg"></div>
+  <div id="results"></div>
+
+  <div class="row2" id="exportrow" style="display:none">
+    <button class="sec" id="csv">⬇︎ Xuất CSV</button>
+    <button class="sec" id="copy">⧉ Copy bảng</button>
+  </div>
+
+  <footer>Dữ liệu từ masothue.com / thuvienphapluat.vn (bên thứ ba) qua Google index — có thể không đầy đủ 100%. Dùng tham khảo.</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let lastRows = [], lastAddr = "";
+
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+async function run(){
+  const addr = $('#addr').value.trim();
+  if(!addr) return;
+  lastAddr = addr;
+  const verify = $('#verify').checked ? "1" : "0";
+  $('#go').disabled = true;
+  $('#msg').innerHTML = "";
+  $('#results').innerHTML = "";
+  $('#exportrow').style.display = "none";
+  $('#status').innerHTML = '<span class="spin"></span>Đang tra cứu Google index...';
+  try{
+    const res = await fetch(`/api/lookup?address=${encodeURIComponent(addr)}&verify=${verify}`);
+    const data = await res.json();
+    if(!res.ok){ throw new Error(data.error || ("HTTP "+res.status)); }
+    $('#status').textContent = "";
+    render(data.results || []);
+  }catch(e){
+    $('#status').textContent = "";
+    $('#msg').innerHTML = '<div class="err">Lỗi: '+esc(e.message)+'</div>';
+  }finally{
+    $('#go').disabled = false;
+  }
+}
+
+function render(rows){
+  lastRows = rows;
+  const box = $('#results');
+  if(!rows.length){
+    box.innerHTML = '<div class="empty">Không tìm thấy công ty khớp địa chỉ này.<br>Thử tắt bộ lọc, hoặc rút gọn (số nhà + đường + quận).</div>';
+    return;
+  }
+  let h = '<div class="status">Tìm thấy <span class="count">'+rows.length+' công ty</span></div>';
+  h += '<table><thead><tr><th>Mã số thuế</th><th>Tên công ty</th><th>Địa chỉ / mô tả</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const tax = r.tax_code
+      ? '<a href="'+esc(r.url)+'" target="_blank">'+esc(r.tax_code)+'</a>'
+      : '—';
+    h += '<tr><td class="tax">'+tax+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.address)+'</td></tr>';
+  });
+  h += '</tbody></table>';
+  box.innerHTML = h;
+  $('#exportrow').style.display = "flex";
+}
+
+$('#go').onclick = run;
+$('#addr').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+$('#verify').onchange = ()=>{ if(lastAddr) run(); };
+document.querySelectorAll('.chip').forEach(c=>{
+  c.onclick = ()=>{ $('#addr').value = c.dataset.a; run(); };
+});
+$('#csv').onclick = ()=>{
+  const v = $('#verify').checked ? "1":"0";
+  window.location = `/api/lookup.csv?address=${encodeURIComponent(lastAddr)}&verify=${v}`;
+};
+$('#copy').onclick = ()=>{
+  const txt = lastRows.map(r=>[r.tax_code,r.name,r.address].join("\t")).join("\n");
+  navigator.clipboard.writeText(txt);
+  $('#copy').textContent = "✓ Đã copy"; setTimeout(()=>$('#copy').textContent="⧉ Copy bảng",1400);
+};
+</script>
+</body>
+</html>

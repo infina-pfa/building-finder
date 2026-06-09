@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: building-finder
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      # Set ONE backend in the Render dashboard (never committed):
+      - key: SERPAPI_KEY        # recommended: one key, no daily cap
+        sync: false
+      - key: GOOGLE_API_KEY     # alternative backend (with GOOGLE_CX)
+        sync: false
+      - key: GOOGLE_CX
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.3"
