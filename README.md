@@ -35,20 +35,6 @@ python app.py
 
 (Windows PowerShell: `setx SERPAPI_KEY "..."` then restart the shell, or use a `.env`.)
 
-## 3. Deploy (so Kiet's team can use a URL)
-
-**Render (easiest, free tier):**
-1. Push this folder to a GitHub repo.
-2. On https://render.com → New → Web Service → connect the repo.
-3. It auto-detects `render.yaml`. In the dashboard, set `SERPAPI_KEY`
-   (or `GOOGLE_API_KEY` + `GOOGLE_CX`) — they are `sync: false`, never committed.
-4. Deploy. Start command is `gunicorn app:app`.
-
-**Railway / Fly / any host:** use the `Procfile` (`web: gunicorn app:app`) and set the
-same two env vars in that platform's settings.
-
-> 🔒 Never commit your keys. `.env` is gitignored; on hosts, set keys in the dashboard.
-
 ## Files
 
 | File | Purpose |
