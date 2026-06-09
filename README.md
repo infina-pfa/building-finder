@@ -1,6 +1,6 @@
 # Building Finder — reverse address → companies (Vietnam)
 
-A deployable web app: type an address, get the companies registered in that building.
+A web app: type an address, get the companies registered in that building.
 Solves the problem fintech/KYB providers don't (they only do tax-code → address).
 
 ## How it works
@@ -43,7 +43,7 @@ python app.py
 | `lookup.py` | Core logic (query build, Google call, parse, address verify, dedupe) |
 | `templates/index.html` | UI: search box, results table, CSV/copy export |
 | `test_app.py` | Tests with mocked Google response (no key needed): `python test_app.py` |
-| `requirements.txt`, `Procfile`, `render.yaml` | Deployment |
+| `requirements.txt` | Python dependencies |
 | `.env.example`, `.gitignore` | Config template + safety |
 
 ## API
@@ -65,3 +65,7 @@ GET /healthz                        -> {"ok":true,"keys_set":bool}
   Registration Portal via a KYB vendor) with the address field and build a normalized
   address index. That's the real "data partner" answer — paid, not a free endpoint.
 - Easy upgrades: add SerpAPI fallback for quota overflow; cache results; add a map view.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

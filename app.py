@@ -1,6 +1,6 @@
 """
 Building Finder — reverse address -> companies (Vietnam).
-Flask web app + JSON API. Deployable to Render / Railway / any WSGI host.
+Flask web app + JSON API.
 
 Search backend is chosen from environment variables:
     SERPAPI_KEY                  -> use SerpAPI (one key, no daily cap)   [preferred]

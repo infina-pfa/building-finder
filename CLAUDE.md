@@ -57,6 +57,8 @@ Two source modules with a strict separation:
 
 - **`templates/index.html`** — single-page UI (search box, results table, CSV/copy export).
 
+Run with `python app.py` (Flask's built-in server). Licensed MIT (see `LICENSE`).
+
 ### Key conventions
 
 - **Backend selection is dynamic, read from env on every call** — not cached at import. Tests
@@ -66,8 +68,8 @@ Two source modules with a strict separation:
 - Adding a data source = append to `DATA_SITES`. Changing what counts as a real company =
   edit `COMPANY_NAME_RE` / `LISTING_TITLE_RE` and add a fixture to `test_app.py`.
 
-## Deployment
+## Secrets
 
-Deploys as a WSGI app via `gunicorn app:app` (`Procfile`). `render.yaml` configures Render's
-free tier; all keys are `sync: false` (set in the host dashboard, never committed). `.env` is
-gitignored — never commit keys.
+`.env` is gitignored — never commit keys. The app loads it via `python-dotenv` on startup;
+in any hosted environment set the same vars (`SERPAPI_KEY`, or `GOOGLE_API_KEY` + `GOOGLE_CX`)
+through the platform's own config, not a committed file.
